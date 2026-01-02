@@ -2,9 +2,9 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import Colors from '../../constants/Colors'; 
 
-function SummaryCard({ name, amount, participationCount, totalItems, isTotal }) {
+function SummaryCard({ name, amount, participationCount, totalItems, isTotal, index }) {
     
-    const displayAmount = amount.toFixed(2);
+    const displayAmount = Math.round(amount).toLocaleString('es-CL');
     
     // Estilos dinámicos basados en si es la tarjeta de Total General o Individual
     const cardStyle = isTotal ? styles.totalCard : styles.individualCard;

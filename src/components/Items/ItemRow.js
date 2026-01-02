@@ -5,6 +5,7 @@ import Colors from '../../constants/Colors';
 
 // --- Componente para simular un Checkbox Nativo ---
 const ItemCheckbox = ({ isChecked, onToggle }) => (
+    // CAMBIO: Quitamos el width de aquí y lo ponemos en el View padre de la fila
     <TouchableOpacity onPress={onToggle} style={checkboxStyles.container}>
         <View style={[checkboxStyles.box, isChecked && checkboxStyles.checkedBox]}>
             {isChecked && (
@@ -16,16 +17,15 @@ const ItemCheckbox = ({ isChecked, onToggle }) => (
 
 const checkboxStyles = StyleSheet.create({
     container: {
-        width: 30, // Coincide con el ancho de la columna en ItemHeader
         alignItems: 'center',
         justifyContent: 'center',
     },
     box: {
-        height: 16,
-        width: 16,
+        height: 18,
+        width: 18,
         borderWidth: 1,
         borderColor: Colors.gray300,
-        borderRadius: 3,
+        borderRadius: 4,
         alignItems: 'center',
         justifyContent: 'center',
     },
@@ -38,52 +38,44 @@ const checkboxStyles = StyleSheet.create({
 
 // --- Componente de Fila Principal (ItemRow) ---
 function ItemRow({ item, participants, toggleParticipant, removeItem }) {
-    // Cálculo replicado del JS original
     const participantCount = item.participants.length;
-    const dividedPrice = participantCount > 0 ? (item.price / participantCount).toFixed(2) : '0.00';
-    
-    // Columnas para celdas flexibles (deben coincidir con ItemHeader.js)
-    const fixedFlex = {
-        name: 3,
-        price: 1.5,
-        divided: 1.5,
-    };
+    const dividedPrice = participantCount > 0 
+        ? Math.round(item.price / participantCount).toLocaleString('es-CL') 
+        : '0';
 
     return (
         <View style={styles.row}>
-            {/* 1. Celda Nombre (Flex 3) */}
-            <View style={[styles.cell, { flex: fixedFlex.name, alignItems: 'flex-start' }]}>
-                <Text style={styles.text}>{item.name}</Text>
+            {/* 1. Celda Nombre: Se mantiene flexible pero con padding */}
+            <View style={{ flex: 3, paddingHorizontal: 5, justifyContent: 'center' }}>
+                <Text style={styles.text} numberOfLines={1}>{item.name}</Text>
             </View>
 
-            {/* 2. Celda Precio (Flex 1.5) */}
-            <View style={[styles.cell, { flex: fixedFlex.price, alignItems: 'flex-start' }]}>
-                <Text style={styles.text}>${item.price.toFixed(2)}</Text>
+            {/* 2. Celda Precio: ANCHO FIJO (80) para que no empuje a los demás */}
+            <View style={{ width: 80, paddingHorizontal: 5, justifyContent: 'center' }}>
+                <Text style={styles.text}>${Math.round(item.price).toLocaleString('es-CL')}</Text>
             </View>
 
-            {/* 3. Checkboxes Dinámicos (Columnas individuales) */}
-            {participants.map(pName => {
-                const isChecked = item.participants.includes(pName);
+            {/* 3. Checkboxes: ENVOLTORIO CON ANCHO FIJO (50) */}
+            {participants.map((p, index) => {
+                const pId = p.id || p; 
+                const isChecked = item.participants.includes(pId);
                 
-                const handleToggle = () => {
-                    toggleParticipant(item.id, pName, !isChecked);
-                };
-
                 return (
-                    <ItemCheckbox 
-                        key={pName}
-                        isChecked={isChecked}
-                        onToggle={handleToggle}
-                    />
+                    <View key={pId} style={{ width: 50, alignItems: 'center', justifyContent: 'center' }}>
+                        <ItemCheckbox 
+                            isChecked={isChecked}
+                            onToggle={() => toggleParticipant(item.id, pId, !isChecked)}
+                        />
+                    </View>
                 );
             })}
 
-            {/* 4. Celda Precio Dividido (Flex 1.5) */}
-            <View style={[styles.cell, { flex: fixedFlex.divided, alignItems: 'flex-start' }]}>
+            {/* 4. Celda Precio Dividido: ANCHO FIJO (80) para alineación perfecta */}
+            <View style={{ width: 80, paddingHorizontal: 5, justifyContent: 'center' }}>
                 <Text style={[styles.text, styles.dividedText]}>${dividedPrice}</Text>
             </View>
 
-            {/* 5. Celda Acciones (Eliminar) */}
+            {/* 5. Celda Acciones */}
             <TouchableOpacity 
                 onPress={() => removeItem(item.id)}
                 style={styles.actionCell}
@@ -101,11 +93,7 @@ const styles = StyleSheet.create({
         borderBottomWidth: 1,
         borderBottomColor: Colors.gray100,
         backgroundColor: Colors.white,
-    },
-    cell: {
-        paddingVertical: 10,
-        paddingHorizontal: 5,
-        justifyContent: 'center',
+        minHeight: 48, // Un poco más de altura para mejor UX
     },
     text: {
         fontSize: 14,
@@ -114,12 +102,12 @@ const styles = StyleSheet.create({
     dividedText: {
         fontWeight: 'bold',
         color: Colors.gray800,
+        textAlign: 'left',
     },
     actionCell: {
-        width: 40, // Coincide con el ancho de la columna de acciones en ItemHeader
+        width: 40, 
         alignItems: 'center',
         justifyContent: 'center',
-        paddingVertical: 10,
     }
 });
 
