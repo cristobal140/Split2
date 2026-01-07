@@ -9,21 +9,17 @@ import { FontAwesome } from '@expo/vector-icons';
 import Colors from './src/constants/Colors';
 import ParticipantSection from './src/components/Participants/ParticipantSection';
 import ItemSection from './src/components/Items/ItemSection'; 
-import SummaryCard from './src/components/Summary/SummaryCard';
 import SummarySection from './src/components/Summary/SummarySection';
 
-// 2. Componente Central con Lógica (Basado en tu JS original)
 function App() {
-    // 🚨 NUEVO ESTADO PARA CONTROLAR LA CARGA DE FUENTES
     const [isLoadingComplete, setIsLoadingComplete] = useState(false); 
 
-    // ESTADOS: Replicamos las variables de estado del JS original
     const [participants, setParticipants] = useState([]);
     const [items, setItems] = useState([]);
     const [nextItemId, setNextItemId] = useState(1);
     const [summary, setSummary] = useState({});
 
-    // --- LÓGICA DE CARGA DE FUENTES ASÍNCRONA ---
+    // --- BLOQUE CORREGIDO: Lógica de Carga ---
     useEffect(() => {
         async function loadResourcesAndDataAsync() {
             try {
@@ -34,13 +30,13 @@ function App() {
             } catch (e) {
                 console.warn('Error al cargar recursos:', e);
             } finally {
+                // ESTO ES LO QUE SACA LA PANTALLA DE CARGA
                 setIsLoadingComplete(true);
             }
         }
         loadResourcesAndDataAsync();
     }, []);
     // --- FIN LÓGICA DE CARGA ---
-
 
     // --- Lógica de Participantes ---
     const addParticipant = (name) => {
@@ -52,7 +48,6 @@ function App() {
 
     const removeParticipant = (nameToRemove) => {
         setParticipants(prevParticipants => prevParticipants.filter(p => p !== nameToRemove));
-        
         setItems(prevItems => 
             prevItems.map(item => ({
                 ...item,
@@ -66,20 +61,26 @@ function App() {
         setItems(prevItems => prevItems.map(item => ({...item, participants: []})));
     };
 
-
     // --- Lógica de Ítems ---
-    const addItem = (name, price) => {
-        if (!name || isNaN(price) || price <= 0 || participants.length === 0) return;
+    const addItem = (name, price, paidBy) => {
+        if (!name || isNaN(price) || price <= 0 || !paidBy) return;
         
         const newItem = {
             id: nextItemId,
             name: name.trim(),
             price: parseFloat(price),
-            participants: [...participants]
+            participants: [...participants],
+            paidBy: paidBy
         };
         
         setItems(prevItems => [...prevItems, newItem]);
         setNextItemId(prevId => prevId + 1);
+    };
+
+    const updateItemPaidBy = (itemId, newPayer) => {
+        setItems(prevItems => 
+            prevItems.map(item => item.id === itemId ? { ...item, paidBy: newPayer} : item)
+        );
     };
 
     const removeItem = (itemId) => {
@@ -90,20 +91,17 @@ function App() {
         setItems(prevItems => 
             prevItems.map(item => {
                 if (item.id !== itemId) return item;
-
                 let updatedParticipants = isChecked
                     ? [...item.participants, participantName] 
                     : item.participants.filter(p => p !== participantName); 
-
                 return { ...item, participants: updatedParticipants };
             })
         );
     };
 
-
-    // --- Lógica de Cálculo del Resumen (Replicando updateSummary()) ---
+    // --- Lógica de Cálculo del Resumen ---
     useEffect(() => {
-        const totals = {};
+        const balances = {};
         const participationCounts = {};
         const totalGeneral = items.reduce((sum, item) => sum + item.price, 0);
 
@@ -112,27 +110,28 @@ function App() {
             return;
         }
 
-        participants.forEach(participant => {
-            totals[participant] = 0;
-            participationCounts[participant] = 0;
+        participants.forEach(p => {
+            balances[p] = 0;
+            participationCounts[p] = 0;
         });
         
         items.forEach(item => {
             const participantCount = item.participants.length;
+            if (item.paidBy && balances.hasOwnProperty(item.paidBy)) {
+                balances[item.paidBy] += item.price;
+            }
             if (participantCount > 0) {
                 const amountPerParticipant = item.price / participantCount;
                 item.participants.forEach(participant => {
-                    totals[participant] += amountPerParticipant;
+                    balances[participant] -= amountPerParticipant;
                     participationCounts[participant] += 1;
                 });
             }
         });
 
-        setSummary({ totals, totalGeneral, participationCounts });
+        setSummary({ totals: balances, totalGeneral, participationCounts });
     }, [participants, items]);
 
-
-    // 🚨 MOSTRAR PANTALLA DE CARGA MIENTRAS SE CARGAN LAS FUENTES
     if (!isLoadingComplete) {
         return (
             <View style={styles.loadingContainer}>
@@ -141,17 +140,14 @@ function App() {
         );
     }
     
-    // --- Renderizado Nativo Principal ---
     return (
         <SafeAreaView style={styles.safeArea}>
             <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
-                
                 <View style={styles.header}>
                     <Text style={styles.headerTitle}>ShopSplit</Text> 
                     <Text style={styles.headerSubtitle}>Divide gastos entre amigos de manera justa</Text>
                 </View>
 
-                {/* Sección 1: Participantes */}
                 <View style={styles.sectionContainer}>
                     <ParticipantSection 
                         participants={participants}
@@ -161,7 +157,6 @@ function App() {
                     />
                 </View>
 
-                {/* Sección 2: Lista de Compras (Ítems) */}
                 <View style={styles.sectionContainer}>
                     <ItemSection
                         items={items}
@@ -169,10 +164,10 @@ function App() {
                         addItem={addItem}
                         removeItem={removeItem}
                         toggleParticipant={toggleParticipant}
+                        updateItemPaidBy={updateItemPaidBy}
                     />
                 </View>
 
-                {/* Sección 3: Resumen de gastos (PENDIENTE) */}
                 <View style={styles.sectionContainer}>
                     <SummarySection
                         participants={participants}
@@ -180,64 +175,20 @@ function App() {
                         items={items}
                     />
                 </View>
-                
             </ScrollView>
         </SafeAreaView>
     );
 }
 
-// 3. Estilos Base Nativo
 const styles = StyleSheet.create({
-    safeArea: {
-        flex: 1,
-        backgroundColor: Colors.gray50,
-    },
-    scrollView: {
-        flex: 1,
-    },
-    scrollContent: {
-        paddingHorizontal: 16, 
-        paddingVertical: 32, 
-    },
-    // --- Header ---
-    header: {
-        marginBottom: 32, 
-    },
-    headerTitle: {
-        fontSize: 24, 
-        fontWeight: 'bold',
-        textAlign: 'center',
-        color: Colors.primary600,
-        marginBottom: 8, 
-    },
-    headerSubtitle: {
-        color: Colors.gray600,
-        textAlign: 'center',
-    },
-    // --- Sección General ---
-    sectionContainer: {
-        marginBottom: 32, 
-        backgroundColor: Colors.white,
-        padding: 24, 
-        borderRadius: 8, 
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 5, 
-    },
-    sectionHeader: {
-        fontSize: 18, 
-        fontWeight: '600',
-        color: Colors.gray800,
-    },
-    // 🚨 NUEVO ESTILO: Contenedor de Carga
-    loadingContainer: { 
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: Colors.white,
-    },
+    safeArea: { flex: 1, backgroundColor: Colors.gray50 },
+    scrollView: { flex: 1 },
+    scrollContent: { paddingHorizontal: 16, paddingVertical: 32 },
+    header: { marginBottom: 32 },
+    headerTitle: { fontSize: 24, fontWeight: 'bold', textAlign: 'center', color: Colors.primary600, marginBottom: 8 },
+    headerSubtitle: { color: Colors.gray600, textAlign: 'center' },
+    sectionContainer: { marginBottom: 32, backgroundColor: Colors.white, padding: 24, borderRadius: 8, elevation: 5 },
+    loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: Colors.white }
 });
 
 export default App;

@@ -7,6 +7,8 @@ function ItemHeader({ participants }) {
     const fixedHeaders = [
         { key: 'item', label: 'Ítem', flex: 3 },
         { key: 'price', label: 'Precio', flex: 1.5 },
+        // AÑADIMOS: Columna para el pagador
+        { key: 'paidBy', label: 'Pagó', width: 60 }, 
     ];
     const fixedFooters = [
         { key: 'divided', label: 'Dividido', flex: 1.5 },
@@ -15,20 +17,27 @@ function ItemHeader({ participants }) {
 
     return (
         <View style={styles.headerRow}>
-            {/* Encabezados Fijos Izquierda (Ítem y Precio) */}
+            {/* Encabezados Fijos Izquierda (Ítem, Precio y Pagó) */}
             {fixedHeaders.map(col => (
-                <View key={col.key} style={[styles.headerCell, { flex: col.flex }]}>
+                <View 
+                    key={col.key} 
+                    style={[
+                        styles.headerCell, 
+                        col.width ? { width: col.width } : { flex: col.flex },
+                        // Centramos la etiqueta "Pagó" para que se vea mejor
+                        col.key === 'paidBy' && { alignItems: 'center' }
+                    ]}
+                >
                     <Text style={styles.headerText}>{col.label}</Text>
                 </View>
             ))}
 
-            {/* OPCIÓN 2: Encabezados Numéricos Dinámicos */}
+            {/* Encabezados Numéricos Dinámicos (Participantes) */}
             {participants.map((_, index) => (
                 <View 
                     key={index} 
                     style={{ width: 50, alignItems: 'center', justifyContent: 'center' }}
                 >
-                    {/* Mostramos el índice + 1 para que empiece desde el 1 */}
                     <Text style={styles.participantText}>{index + 1}</Text> 
                 </View>
             ))}
@@ -53,7 +62,6 @@ const styles = StyleSheet.create({
         paddingVertical: 10, 
         borderBottomWidth: 1,
         borderBottomColor: Colors.gray300,
-        // Asegura que el header tenga el mismo fondo para que no se vea transparente
         minWidth: '100%', 
     },
     headerCell: {
@@ -62,19 +70,13 @@ const styles = StyleSheet.create({
         paddingHorizontal: 5,
     },
     headerText: {
-        fontSize: 12,
+        fontSize: 11, // Reducimos un poco para que quepan más columnas
         color: Colors.gray700,
         fontWeight: 'bold',
     },
-    participantCell: {
-        // Ajustamos el ancho a 45 para que sea cómodo de tocar y leer
-        width: 45, 
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
     participantText: {
         fontSize: 12,
-        color: Colors.blue600, // Color azul para resaltar que es un número de participante
+        color: Colors.blue600,
         fontWeight: 'bold',
     }
 });

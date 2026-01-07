@@ -4,40 +4,59 @@ import Colors from '../../constants/Colors';
 
 function SummaryCard({ name, amount, participationCount, totalItems, isTotal, index }) {
     
-    const displayAmount = Math.round(amount).toLocaleString('es-CL');
+    // Usamos el valor absoluto para mostrar el número siempre positivo en la UI
+    const absAmount = Math.abs(amount);
+    const displayAmount = Math.round(absAmount).toLocaleString('es-CL');
     
-    // Estilos dinámicos basados en si es la tarjeta de Total General o Individual
+    // Lógica de estados: Saldo Neto
+    const isPositive = amount > 0.1;  // Saldo a favor (le deben)
+    const isNegative = amount < -0.1; // Saldo en contra (debe pagar)
+
+    // Estilos dinámicos
     const cardStyle = isTotal ? styles.totalCard : styles.individualCard;
     const amountTextStyle = isTotal ? styles.totalAmountText : styles.individualAmountText;
-    const statusText = isTotal ? 'Total General' : (amount > 0 ? 'Debe pagar' : 'No debe');
+    
+    // Configuración del Badge (Estado)
+    let statusText = 'Al día';
+    let badgeStyle = [styles.statusBadge, styles.neutralBadge];
 
-    // Estilo del badge según el estado
-    const badgeStyle = isTotal 
-        ? [styles.statusBadge, styles.totalBadge]
-        : [styles.statusBadge, (amount > 0 ? styles.positiveBadge : styles.neutralBadge)];
-
+    if (isTotal) {
+        statusText = 'Total General';
+        badgeStyle = [styles.statusBadge, styles.totalBadge];
+    } else if (isPositive) {
+        statusText = 'Le deben';
+        badgeStyle = [styles.statusBadge, styles.positiveBadge]; // Fondo verde
+    } else if (isNegative) {
+        statusText = 'Debe pagar';
+        badgeStyle = [styles.statusBadge, styles.negativeBadge]; // Fondo rojo
+    }
 
     return (
-        // Usamos un ancho fijo (48%) para simular dos columnas en Flexbox
         <View style={[styles.baseCard, cardStyle, { width: isTotal ? '100%' : '48%' }]}> 
-            
             <View style={styles.headerRow}>
-                <Text style={styles.nameText}>{isTotal ? 'TOTAL GENERAL' : name}</Text>
+                <Text style={styles.nameText} numberOfLines={1}>
+                    {isTotal ? 'TOTAL GENERAL' : `${index + 1}. ${name}`}
+                </Text>
                 
                 <View style={badgeStyle}>
-                    <Text style={styles.statusText}>{statusText}</Text>
+                    <Text style={[
+                        styles.statusText, 
+                        isPositive && { color: '#065f46' }, // Texto verde oscuro
+                        isNegative && { color: '#991b1b' }  // Texto rojo oscuro
+                    ]}>
+                        {statusText}
+                    </Text>
                 </View>
             </View>
 
             <Text style={amountTextStyle}>${displayAmount}</Text>
             
-            {/* Detalles de participación */}
             <View style={styles.detailRow}>
                 <Text style={styles.detailText}>
                     {isTotal ? (
                         `${totalItems} ítems en total`
                     ) : (
-                        `Participó en ${participationCount} de ${totalItems} ítems`
+                        `En ${participationCount} de ${totalItems} ítems`
                     )}
                 </Text>
             </View>
@@ -46,10 +65,9 @@ function SummaryCard({ name, amount, participationCount, totalItems, isTotal, in
 }
 
 const styles = StyleSheet.create({
-    // --- Estilos Base ---
     baseCard: {
         padding: 16, 
-        borderRadius: 8,
+        borderRadius: 12,
         shadowColor: "#000",
         shadowOffset: { width: 0, height: 1 },
         shadowOpacity: 0.1,
@@ -64,39 +82,36 @@ const styles = StyleSheet.create({
         marginBottom: 8,
     },
     nameText: {
-        fontSize: 16,
+        fontSize: 14,
         fontWeight: 'bold',
         color: Colors.gray800,
+        flex: 1,
+        marginRight: 4,
     },
-    // --- Badges ---
     statusBadge: {
         paddingHorizontal: 8,
         paddingVertical: 4,
-        borderRadius: 12,
-        alignSelf: 'flex-start',
+        borderRadius: 8,
     },
     statusText: {
-        fontSize: 12,
-        fontWeight: '500',
+        fontSize: 10,
+        fontWeight: 'bold',
     },
-    // --- Estilos Individuales ---
     individualCard: {
         backgroundColor: Colors.white,
         borderWidth: 1,
         borderColor: Colors.gray200,
     },
-    positiveBadge: { // Debe pagar
-        backgroundColor: Colors.primary100, 
-    },
-    neutralBadge: { // No debe
-        backgroundColor: Colors.gray100, 
-    },
+    // Nuevos colores para estados de deuda
+    positiveBadge: { backgroundColor: '#d1fae5' }, // Verde éxito
+    negativeBadge: { backgroundColor: '#fee2e2' }, // Rojo error
+    neutralBadge: { backgroundColor: Colors.gray100 },
+    
     individualAmountText: {
-        fontSize: 24,
+        fontSize: 22,
         fontWeight: 'bold',
         color: Colors.gray800,
     },
-    // --- Estilos Total General ---
     totalCard: {
         backgroundColor: Colors.primary600, 
     },
@@ -104,11 +119,10 @@ const styles = StyleSheet.create({
         backgroundColor: Colors.primary500,
     },
     totalAmountText: {
-        fontSize: 28,
+        fontSize: 26,
         fontWeight: 'bold',
         color: Colors.white,
     },
-    // --- Detalles ---
     detailRow: {
         marginTop: 16,
         paddingTop: 8,
@@ -116,7 +130,7 @@ const styles = StyleSheet.create({
         borderTopColor: Colors.gray100,
     },
     detailText: {
-        fontSize: 12,
+        fontSize: 11,
         color: Colors.gray600,
     }
 });

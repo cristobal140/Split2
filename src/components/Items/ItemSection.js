@@ -8,7 +8,7 @@ import ItemTable from './ItemTable';
 import ItemInput from './ItemInput'; 
 
 
-function ItemSection({ items, participants, addItem, removeItem, toggleParticipant }) {
+function ItemSection({ items, participants, addItem, removeItem, toggleParticipant, updateItemPaidBy }) {
      
     // Obtiene el color de texto gris oscuro (gray800)
     // Usamos el objeto Colors que importamos
@@ -29,13 +29,14 @@ function ItemSection({ items, participants, addItem, removeItem, toggleParticipa
                     participants={participants} 
                     toggleParticipant={toggleParticipant}
                     removeItem={removeItem}
+                    updateItemPaidBy= {updateItemPaidBy}
                 />
             </View>
             
             {/* Formulario de Adición (Input) */}
             <ItemInput 
                 onAddItem={addItem} 
-                participantsCount={participants.length}
+                participants={participants}
             />
 
         </View>

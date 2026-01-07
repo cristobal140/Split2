@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Share } from 'react-native'; // Importamos Share
+import { View, Text, StyleSheet, TouchableOpacity, Share } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 import Colors from '../../constants/Colors'; 
 import SummaryCard from './SummaryCard';
@@ -8,18 +8,56 @@ function SummarySection({ participants, summary, items }) {
     const totalItems = items.length;
     const { totals, totalGeneral, participationCounts } = summary;
 
-    // --- FUNCIÓN PARA COMPARTIR ---
+    // --- FUNCIÓN PARA COMPARTIR CON LIQUIDACIÓN DE DEUDAS ---
     const handleShare = async () => {
         try {
-            // Construcción del mensaje para WhatsApp/Mensajería
-            let message = `💰 *Resumen de Gastos - ShopSplit*\n\n`;
-            
-            participants.forEach((name, index) => {
-                const amount = Math.round(totals[name] || 0).toLocaleString('es-CL');
-                message += `${index + 1}. ${name}: $${amount}\n`;
+            // 1. Separar a las personas en deudores y acreedores basándose en el saldo neto
+            let debtors = [];
+            let creditors = [];
+
+            participants.forEach(name => {
+                const balance = Math.round(totals[name] || 0);
+                if (balance < -1) {
+                    debtors.push({ name, amount: Math.abs(balance) });
+                } else if (balance > 1) {
+                    creditors.push({ name, amount: balance });
+                }
             });
 
-            message += `\n───────────────\n`;
+            // 2. Construir el mensaje
+            let message = `💰 *Liquidación de Gastos - ShopSplit*\n\n`;
+
+            if (creditors.length === 0) {
+                message += "¡Todos están al día! No hay deudas pendientes.\n";
+            } else {
+                // Algoritmo de reparto: El deudor le paga al acreedor hasta saldar la deuda
+                // Hacemos una copia para no modificar el estado original
+                let tempDebtors = debtors.map(d => ({ ...d }));
+                let tempCreditors = creditors.map(c => ({ ...c }));
+
+                tempCreditors.forEach(creditor => {
+                    message += `👤 *A ${creditor.name} le deben:*\n`;
+                    let hasPayments = false;
+
+                    tempDebtors.forEach(debtor => {
+                        if (debtor.amount > 0 && creditor.amount > 0) {
+                            const payment = Math.min(debtor.amount, creditor.amount);
+                            
+                            if (payment > 0) {
+                                message += `   └─ ${debtor.name}: $${Math.round(payment).toLocaleString('es-CL')}\n`;
+                                debtor.amount -= payment;
+                                creditor.amount -= payment;
+                                hasPayments = true;
+                            }
+                        }
+                    });
+                    
+                    if (!hasPayments) message += `   └─ (Nadie le debe)\n`;
+                    message += `\n`;
+                });
+            }
+
+            message += `───────────────\n`;
             message += `*TOTAL GENERAL: $${Math.round(totalGeneral).toLocaleString('es-CL')}*\n`;
             message += `\nGenerado por ShopSplit 📱`;
 
@@ -40,14 +78,12 @@ function SummarySection({ participants, summary, items }) {
 
     return (
         <View style={styles.container}>
-            {/* CABECERA CON BOTÓN COMPARTIR */}
             <View style={styles.header}>
                 <View style={styles.titleWrapper}>
                     <FontAwesome name="dollar" size={20} color={Colors.gray800} style={{ marginRight: 8 }} />
                     <Text style={styles.headerText}>Resumen de gastos</Text>
                 </View>
 
-                {/* BOTÓN PREMIUM */}
                 {totalItems > 0 && (
                     <TouchableOpacity onPress={handleShare} style={styles.shareButton}>
                         <FontAwesome name="share-alt" size={16} color={Colors.white} />
@@ -84,59 +120,15 @@ function SummarySection({ participants, summary, items }) {
 }
 
 const styles = StyleSheet.create({
-    container: {
-        marginTop: 20,
-        paddingBottom: 40, // Espacio extra al final para scroll
-    },
-    header: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between', 
-        marginBottom: 16,
-        paddingHorizontal: 4,
-    },
-    titleWrapper: {
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
-    headerText: {
-        fontSize: 18, 
-        fontWeight: '600',
-        color: Colors.gray800,
-    },
-    // Estilo del botón compartir
-    shareButton: {
-        backgroundColor: Colors.primary500,
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingHorizontal: 15,
-        paddingVertical: 8,
-        borderRadius: 25,
-        elevation: 3, // Sombra en Android
-        shadowColor: '#000', // Sombra en iOS
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.2,
-        shadowRadius: 2,
-    },
-    shareText: {
-        color: Colors.white,
-        fontSize: 13,
-        fontWeight: 'bold',
-        marginLeft: 8,
-    },
-    gridContainer: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        justifyContent: 'space-between',
-    },
-    emptyContainer: {
-        alignItems: 'center',
-        paddingVertical: 32,
-    },
-    emptyText: {
-        color: Colors.gray500,
-        fontSize: 16,
-    }
+    container: { marginTop: 20, paddingBottom: 40 },
+    header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, paddingHorizontal: 4 },
+    titleWrapper: { flexDirection: 'row', alignItems: 'center' },
+    headerText: { fontSize: 18, fontWeight: '600', color: Colors.gray800 },
+    shareButton: { backgroundColor: Colors.primary500, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 15, paddingVertical: 8, borderRadius: 25, elevation: 3, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.2, shadowRadius: 2 },
+    shareText: { color: Colors.white, fontSize: 13, fontWeight: 'bold', marginLeft: 8 },
+    gridContainer: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' },
+    emptyContainer: { alignItems: 'center', paddingVertical: 32 },
+    emptyText: { color: Colors.gray500, fontSize: 16 }
 });
 
 export default SummarySection;
