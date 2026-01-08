@@ -38,7 +38,6 @@ function ItemSection({ items, participants, addItem, removeItem, toggleParticipa
                 onAddItem={addItem} 
                 participants={participants}
             />
-
         </View>
     );
 }
