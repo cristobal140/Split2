@@ -1,4 +1,5 @@
 # 💸 ShopSplit (Split)
+Descarga la app en este mismo repositorio: https://github.com/cristobal140/Split2/tree/main/APK
 
 ## 🧐 ¿Qué es y qué problema soluciona?
 ShopSplit es una aplicación móvil (Android/iOS) diseñada para calcular y administrar fácilmente la división de gastos y cuentas entre amigos. 
