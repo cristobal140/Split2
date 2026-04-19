@@ -8,7 +8,7 @@ import ItemTable from './ItemTable';
 import ItemInput from './ItemInput'; 
 
 
-function ItemSection({ items, participants, addItem, removeItem, toggleParticipant, updateItemPaidBy }) {
+function ItemSection({ items, participants, addItem, removeItem, toggleParticipant, updateItemPaidBy, updateItemPrice }) {
      
     // Obtiene el color de texto gris oscuro (gray800)
     // Usamos el objeto Colors que importamos
@@ -29,7 +29,8 @@ function ItemSection({ items, participants, addItem, removeItem, toggleParticipa
                     participants={participants} 
                     toggleParticipant={toggleParticipant}
                     removeItem={removeItem}
-                    updateItemPaidBy= {updateItemPaidBy}
+                    updateItemPaidBy={updateItemPaidBy}
+                    updateItemPrice={updateItemPrice}
                 />
             </View>
             

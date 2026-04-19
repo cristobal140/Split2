@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 import Colors from '../../constants/Colors';
 
@@ -23,7 +23,7 @@ const checkboxStyles = StyleSheet.create({
     checkedBox: { backgroundColor: Colors.primary500, borderColor: Colors.primary500 }
 });
 
-function ItemRow({ item, participants, toggleParticipant, removeItem, updateItemPaidBy }) {
+function ItemRow({ item, participants, toggleParticipant, removeItem, updateItemPaidBy, updateItemPrice }) {
     const participantCount = item.participants.length;
     const dividedPrice = participantCount > 0 
         ? Math.round(item.price / participantCount).toLocaleString('es-CL') 
@@ -43,8 +43,17 @@ function ItemRow({ item, participants, toggleParticipant, removeItem, updateItem
             </View>
 
             {/* 2. Precio */}
-            <View style={{ width: 80, paddingHorizontal: 5, justifyContent: 'center' }}>
-                <Text style={styles.text}>${Math.round(item.price).toLocaleString('es-CL')}</Text>
+            <View style={{ width: 80, paddingHorizontal: 5, justifyContent: 'center', flexDirection: 'row', alignItems: 'center' }}>
+                <Text style={styles.text}>$</Text>
+                <TextInput
+                    style={[styles.text, styles.priceInput]}
+                    defaultValue={Math.round(item.price).toString()}
+                    keyboardType="numeric"
+                    onEndEditing={(e) => {
+                        updateItemPrice(item.id, e.nativeEvent.text);
+                    }}
+                    selectTextOnFocus
+                />
             </View>
 
             {/* Selector de Pagador */}
@@ -87,6 +96,7 @@ const styles = StyleSheet.create({
     },
     text: { fontSize: 14, color: Colors.gray700 },
     dividedText: { fontWeight: 'bold', color: Colors.gray800 },
+    priceInput: { flex: 1, padding: 0, margin: 0 },
     actionCell: { width: 40, alignItems: 'center', justifyContent: 'center' },
     payerCell: { width: 60, alignItems: 'center', justifyContent: 'center', flexDirection: 'row' },
     payerBadge: {

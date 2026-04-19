@@ -83,6 +83,13 @@ function App() {
         );
     };
 
+    const updateItemPrice = (itemId, newPrice) => {
+        const parsedPrice = parseFloat(newPrice);
+        setItems(prevItems => 
+            prevItems.map(item => item.id === itemId ? { ...item, price: isNaN(parsedPrice) ? 0 : parsedPrice } : item)
+        );
+    };
+
     const removeItem = (itemId) => {
         setItems(prevItems => prevItems.filter(item => item.id !== itemId));
     };
@@ -165,6 +172,7 @@ function App() {
                         removeItem={removeItem}
                         toggleParticipant={toggleParticipant}
                         updateItemPaidBy={updateItemPaidBy}
+                        updateItemPrice={updateItemPrice}
                     />
                 </View>
 

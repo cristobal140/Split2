@@ -4,7 +4,7 @@ import ItemHeader from './ItemHeader';
 import ItemRow from './ItemRow';
 import Colors from '../../constants/Colors';
 
-function ItemTable({ items, participants, toggleParticipant, removeItem, updateItemPaidBy }) {
+function ItemTable({ items, participants, toggleParticipant, removeItem, updateItemPaidBy, updateItemPrice }) {
     
     // 1. Caso: No hay participantes
     if (participants.length === 0) {
@@ -50,6 +50,7 @@ function ItemTable({ items, participants, toggleParticipant, removeItem, updateI
                                     toggleParticipant={toggleParticipant}
                                     removeItem={removeItem}
                                     updateItemPaidBy={updateItemPaidBy}
+                                    updateItemPrice={updateItemPrice}
                                 />
                             ))}
                         </ScrollView>

@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Share } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
-import Colors from '../../constants/Colors'; 
+import Colors from '../../constants/Colors';
 import SummaryCard from './SummaryCard';
 
 function SummarySection({ participants, summary, items }) {
@@ -25,7 +25,7 @@ function SummarySection({ participants, summary, items }) {
             });
 
             // 2. Construir el mensaje
-            let message = `💰 *Liquidación de Gastos - ShopSplit*\n\n`;
+            let message = `💰 *Liquidación de Gastos - Split*\n\n`;
 
             if (creditors.length === 0) {
                 message += "¡Todos están al día! No hay deudas pendientes.\n";
@@ -42,7 +42,7 @@ function SummarySection({ participants, summary, items }) {
                     tempDebtors.forEach(debtor => {
                         if (debtor.amount > 0 && creditor.amount > 0) {
                             const payment = Math.min(debtor.amount, creditor.amount);
-                            
+
                             if (payment > 0) {
                                 message += `   └─ ${debtor.name}: $${Math.round(payment).toLocaleString('es-CL')}\n`;
                                 debtor.amount -= payment;
@@ -51,7 +51,7 @@ function SummarySection({ participants, summary, items }) {
                             }
                         }
                     });
-                    
+
                     if (!hasPayments) message += `   └─ (Nadie le debe)\n`;
                     message += `\n`;
                 });
@@ -59,7 +59,6 @@ function SummarySection({ participants, summary, items }) {
 
             message += `───────────────\n`;
             message += `*TOTAL GENERAL: $${Math.round(totalGeneral).toLocaleString('es-CL')}*\n`;
-            message += `\nGenerado por ShopSplit 📱`;
 
             await Share.share({ message });
         } catch (error) {
@@ -94,7 +93,7 @@ function SummarySection({ participants, summary, items }) {
 
             <View style={styles.gridContainer}>
                 {participants.map((name, index) => (
-                    <SummaryCard 
+                    <SummaryCard
                         key={name}
                         name={name}
                         index={index}
@@ -104,7 +103,7 @@ function SummarySection({ participants, summary, items }) {
                         isTotal={false}
                     />
                 ))}
-                
+
                 {totalItems > 0 && (
                     <SummaryCard
                         key="total"
